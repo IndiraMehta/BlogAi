@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: blogai-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - blogai-network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: blogai-backend
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017?authSource=admin
+      JWT_SECRET: Project
+      ADMIN_EMAIL: mehtaindira14@gmail.com
+      ADMIN_PASSWORD: Indira
+      IMAGEKIT_PUBLIC_KEY: public_x3c757MNT0Kjm6+OJBPz7VZfAMs=
+      IMAGEKIT_PRIVATE_KEY: private_uljfvG1wIaOlXiKEBCPl4KEanII=
+      IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/phke3dw4i
+      GEMINI_API_KEY: AIzaSyDdo73FNrVDE_00ioP7VA8pZRAyabWqLO0
+    depends_on:
+      - mongodb
+    networks:
+      - blogai-network
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: blogai-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - blogai-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  blogai-network:
+    driver: bridge
