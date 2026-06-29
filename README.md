@@ -4,6 +4,31 @@ BlogAI is a full-stack blog platform where users can read published posts, leave
 
 ---
 
+## Tech Stack
+
+### Frontend
+![React](https://img.shields.io/badge/REACT-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/VITE-646CFF?style=flat-square&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TAILWIND_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![React Router](https://img.shields.io/badge/REACT_ROUTER-CA4245?style=flat-square&logo=reactrouter&logoColor=white)
+![Axios](https://img.shields.io/badge/AXIOS-5A29E4?style=flat-square&logo=axios&logoColor=white)
+
+### Backend
+![Node.js](https://img.shields.io/badge/NODE.JS-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/EXPRESS-000000?style=flat-square&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MONGODB-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Redis](https://img.shields.io/badge/REDIS-FF4438?style=flat-square&logo=redis&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
+
+### DevOps
+![Docker](https://img.shields.io/badge/DOCKER-2496ED?style=flat-square&logo=docker&logoColor=white)
+
+### Integrations
+![Gemini](https://img.shields.io/badge/GEMINI_API-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)
+![ImageKit](https://img.shields.io/badge/IMAGEKIT-FF6C2C?style=flat-square&logoColor=white)
+
+---
+
 ## Features
 
 - Responsive blog website for readers
@@ -13,28 +38,6 @@ BlogAI is a full-stack blog platform where users can read published posts, leave
 - Comment moderation and approval
 - AI-assisted content generation using Gemini
 - Image upload and optimization via ImageKit
-
----
-
-## Tech Stack
-
-### Frontend
-- React + Vite
-- Tailwind CSS
-- React Router DOM
-- Axios
-- React Hot Toast
-
-### Backend
-- Node.js + Express.js
-- MongoDB with Mongoose
-- Redis — caching and session management
-- JWT authentication
-- Multer for file uploads
-
-### Integrations
-- Google Gemini API — AI-generated content
-- ImageKit — image hosting and optimization
 
 ---
 
@@ -50,7 +53,84 @@ BlogAi/
 
 ---
 
-## Getting Started
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENT (React)                        │
+│         Vite · Tailwind CSS · React Router · Axios          │
+└───────────────────────┬─────────────────┬───────────────────┘
+                        │  HTTP / REST     │
+                        ▼                 ▼
+          ┌─────────────────────────────────────┐
+          │         EXPRESS.JS SERVER           │
+          │        Node.js · JWT Auth           │
+          └──────┬──────────┬──────────┬────────┘
+                 │          │          │
+        ┌────────▼───┐  ┌───▼────┐  ┌─▼──────────────┐
+        │  MONGODB   │  │ REDIS  │  │  EXTERNAL APIs  │
+        │ (Mongoose) │  │ Cache  │  │                 │
+        │            │  │        │  │ ┌─────────────┐ │
+        │  blogs     │  │ cached │  │ │ Gemini API  │ │
+        │  comments  │  │ blogs  │  │ │ (AI content)│ │
+        │  users     │  │ sessions│  │ └─────────────┘ │
+        └────────────┘  └────────┘  │ ┌─────────────┐ │
+                                    │ │  ImageKit   │ │
+                                    │ │  (images)   │ │
+                                    │ └─────────────┘ │
+                                    └─────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                     DOCKER COMPOSE                          │
+│          server  ·  mongodb  ·  redis  (containers)         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Request Flow
+
+```
+User visits blog
+      │
+      ▼
+React Router matches route
+      │
+      ▼
+Axios sends GET /api/blogs
+      │
+      ▼
+Express receives request
+      │
+      ├── Redis hit? ──── YES ──▶ Return cached response
+      │
+      └── Redis miss?
+              │
+              ▼
+        Query MongoDB
+              │
+              ▼
+        Store in Redis cache
+              │
+              ▼
+        Return response to client
+```
+
+### Admin Flow
+
+```
+Admin logs in
+      │
+      ▼
+POST /api/admin/login  ──▶  JWT issued
+      │
+      ▼
+Dashboard actions (authenticated routes)
+      │
+      ├── Create post ──▶ Multer handles image ──▶ ImageKit upload ──▶ Save to MongoDB
+      │
+      ├── AI generate  ──▶ Gemini API ──▶ Return draft content
+      │
+      └── Moderate comments ──▶ Approve / Delete in MongoDB
+```
 
 ### Prerequisites
 
@@ -88,8 +168,6 @@ To stop all containers:
 ```bash
 docker-compose down
 ```
-
-### 3. Manual backend setup
 
 ### 3. Manual backend setup
 
@@ -144,6 +222,7 @@ npm run dev
 |--------------------|------------------------------------|
 | `npm run dev`      | Start Vite development server      |
 | `npm run build`    | Build for production               |
+| `npm run preview`  | Preview the production build       |
 
 ---
 
